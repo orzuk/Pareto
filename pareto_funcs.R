@@ -2,6 +2,7 @@ library(cubature) # for multi-dimensional integration
 library(iterpc)
 library(Rmpfr) # arbitrary precision
 library(pracma)
+library(mvtnorm)
 # library(VeryLargeIntegers)
 
 
@@ -11,9 +12,27 @@ pareto_P_sim <- function(n, k, iters=1000)
 {
   n.pareto <- rep(0, iters)
   for(i in 1:iters)
-    n.pareto[i] <- length(get_pareto_optimal_vecs(matrix(runif(n*k), nrow=n, ncol=k))$pareto.inds) # Simulate vectors 
-  return(list(n.pareto=n.pareto, p.pareto=mean(n.pareto) / n))
+    n.pareto[i] <- length(get_pareto_optimal_vecs(matrix(runif(n*k), nrow=n, ncol=k), FALSE )$pareto.inds) # Simulate vectors 
+  p.pareto <- mean(n.pareto) / n
+  return(list(n.pareto=n.pareto, p.pareto=p.pareto, 
+              e12.pareto = p.pareto^2 + (var(n.pareto) - n*p.pareto*(1-p.pareto)) / nchoosek(n, 2)))
 }
+
+
+# Function for counting pareto-optimal CORRELATED vectors 
+# Compute Pareto optimal probability under correlation rho with simulations 
+pareto_P_sim_cor <- function(n, k, rho=0, iters=1000)
+{
+  Sigma <- (1-rho)*diag(k) + matrix(rho, nrow=k, ncol=k)
+  n.pareto <- rep(0, iters)
+  for(i in 1:iters)
+    n.pareto[i] <- length(get_pareto_optimal_vecs(rmvnorm(n, rep(0, k), Sigma))$pareto.inds) # Simulate vectors 
+
+  p.pareto <- mean(n.pareto) / n
+  return(list(n.pareto=n.pareto, p.pareto=p.pareto, 
+              e12.pareto = p.pareto^2 + (var(n.pareto) - n*p.pareto*(1-p.pareto)) / nchoosek(n, 2)))
+}
+
 
 
 
@@ -74,10 +93,10 @@ is_pareto_optimal <- function(x, X.mat)
   return( min(rowMaxs(t(replicate(n.row, x))+epsilon - X.mat, value=TRUE)) >= 0 )
 }
 
-# Extract only pareto-optimal vectors in a matrix
-get_pareto_optimal_vecs <- function(X.mat)
+# Extract only Pareto-optimal vectors in a matrix
+get_pareto_optimal_vecs <- function(X.mat, cpp.flag = FALSE)
 {
-  cpp.flag <- FALSE
+#  cpp.flag <- FALSE
   if(cpp.flag)
   {
     par <- get_pareto_optimal_vecs_rcpp(X.mat)
@@ -217,8 +236,8 @@ pareto_P_approx <- function(n, k, order=2)
 }
 
 
-# Compute pareto probability for binary vectors (consider ties)
-pareto_P_binary <- function(n, k, strong = FALSE)
+# Compute Pareto probability for binary vectors (consider ties)
+pareto_P_binary_old <- function(n, k, strong = FALSE)
 {
   if(strong)
     return( sum( dbinom(0:k, k, 0.5) * (1 - 0.5^c(0:k))^(n-1)) )
@@ -227,7 +246,41 @@ pareto_P_binary <- function(n, k, strong = FALSE)
 }
 
 
-# Compute pareto probability for binary vectors for a matrix of n and k values (consider ties)
+# Compute Pareto probability for binary vectors (consider ties).
+pareto_P_binary <- function(n, k, strong = FALSE)
+{
+    return( sum( dbinom(0:k, k, 0.5) * (1 - 0.5^c(0:k) + (1-strong)*0.5^k  )^(n-1)) )
+}
+
+
+# Compute log Pareto probability for binary vectors (consider ties). Smart implementation avoiding underflow
+pareto_P_binary_log <- function(n, k, strong = FALSE, p=0.5)
+{
+#  log.vec <- lfactorial(k) - k*log(2) -lfactorial(0:k) - rev(lfactorial(0:k))  + (n-1) * log( 1 - 0.5^c(0:k) + (1-strong)*0.5^k )
+  log.vec = log( 1 - p^c(0:k) + (1-strong)*p^c(0:k)*(1-p)^(k:0))   # log.vec = log( 1 - 0.5^c(0:k) + (1-strong)*0.5^k)  # for p=0.5
+###  log.vec = log( 1 - 0.5^c(0:k) + (1-strong)*0.5^k)  # for p=0.5
+  zero.inds = which(log.vec == 0)
+  log.vec[zero.inds] = -p^(zero.inds-1)  + (1-strong)*p^(zero.inds-1)*(1-p)^(k-zero.inds+1)  # -0.5^(zero.inds-1)  + (1-strong)*0.5^k # change here to general p 
+###  log.vec[zero.inds] = -0.5^(zero.inds-1)  + (1-strong)*0.5^k # change here to general p 
+  log.vec <- lfactorial(k) + (0:k)*log(p) + (k:0)*log(1-p) -lfactorial(0:k) - rev(lfactorial(0:k))  + (n-1) * log.vec #   log.vec <- lfactorial(k) - k*log(2) -lfactorial(0:k) - rev(lfactorial(0:k))  + (n-1) * log.vec
+###  log.vec <- lfactorial(k) + k*log(0.5)  -lfactorial(0:k) - rev(lfactorial(0:k))  + (n-1) * log.vec #   log.vec <- lfactorial(k) - k*log(2) -lfactorial(0:k) - rev(lfactorial(0:k))  + (n-1) * log.vec
+  max.log <- max(log.vec)
+#  return( log( sum(exp( log.vec - max.log  ))) + max.log )
+  
+  return( list(log.p.n.k = log( sum(exp( log.vec - max.log  ))) + max.log, log.vec = log.vec ) )
+}
+
+
+pareto_P_binary_log_vec <- function(n, k, strong = FALSE)
+{
+  log.vec <- lfactorial(k) - k*log(2) -lfactorial(0:k) - rev(lfactorial(0:k))  + (n-1) * log( 1 - 0.5^c(0:k) + (1-strong)*0.5^k )
+  
+  return(log.vec - max(log.vec))
+  
+}
+
+
+# Compute Pareto probability for binary vectors for a matrix of n and k values (consider ties)
 pareto_P_binary_mat <- function(max.n, max.k, strong = FALSE)
 {
   P.mat <- matrix(0, nrow=max.n, ncol=max.k)
@@ -251,7 +304,7 @@ pareto_P_binary_mat <- function(max.n, max.k, strong = FALSE)
   return(P.mat)
 }
 
-# Comptue the matrix of alpha_j,k coefficients and the vector of m_k coefficients
+# Compute the matrix of alpha_j,k coefficients and the vector of m_k coefficients
 pareto_alpha_mat_m_vec <- function(max.k, log.flag = FALSE)
 {
   log.m.k = c(0, (1:(max.k-1)) * ( log(1:(max.k-1)) - 1) - lfactorial(1:(max.k-1)))
@@ -390,8 +443,76 @@ pareto_P_var <- function(k, n, integral_method = "cuhre", vectorize = FALSE) # "
   print(paste0("e_{n,k}=", round(e_k_n, 6), " , p_{n,k}=", round(p_n_k, 6), 
                " , p_{n,k}^2=", round(p_n_k^2, 6), " , COV_{n,k}=", round(e_k_n - p_n_k^2, 6)))
   
-  return(list(V = n * p_n_k * (1-p_n_k) + nchoosek(n, 2) * (e_k_n - p_n_k^2), run.time = Sys.time() - start_time))
+  return(list(V = n * p_n_k * (1-p_n_k) + n*(n-1) * (e_k_n - p_n_k^2), run.time = Sys.time() - start_time))
 }
+
+
+pareto_E_Z1Z2_R <- function(k, n)
+{
+  load("e_k_n_big_tab.Rdata")
+  if(e_k_n_big_tab[k,n] >= 0)
+    e_k_n <- e_k_n_big_tab[k,n]
+  else
+  {  
+    e_k_n <- as.numeric(as.character(pareto_E_Z1Z2_python(as.integer(k), as.integer(n))))
+    e_k_n_big_tab[k,n] <- e_k_n
+    save(e_k_n_big_tab, file = "e_k_n_big_tab.Rdata") # update file 
+  }
+  return(e_k_n)
+}
+
+# Pearson correlation
+pareto_P_corr <- function(k, n)
+{
+  p_n_k <- pareto_P2(n, k)
+  e_k_n <- pareto_E_Z1Z2_R(k, n)
+  return( (e_k_n - p_n_k^2)  / (p_n_k*(1-p_n_k)) )
+}
+  
+  
+# Alternative computation for k=2
+pareto_E_Z1Z2_K_2 <- function(n, fast.flag = TRUE)
+{
+  r <- 0
+  
+  if(fast.flag)
+  {
+    recip.cum.vec <- rev(cumsum(1 / seq(n, 1, -1)))[2:n] # reverse order
+    recip.vec <- 1 / c(1:(n-1))
+    r <- sum(recip.vec * recip.cum.vec)
+  } 
+  else  # slow O(n^2) loop
+  {
+  for(i in c(1:(n-1)))
+    for(j in c((i+1):n))
+      r <- r + 1/(i*j)
+  }  
+  return(  r*2 / (n*(n-1)) )
+  
+}
+
+
+# Alternative computation for k=3. Try: WRONG! (gives a reasonable approximation)
+pareto_E_Z1Z2_K_3 <- function(n)
+{
+  r <- 0
+  for(i in c(1:(n-1)))
+    for(j in c((i+1):n))
+      r <- r + (pareto_P2(i, 2) * pareto_P2(j, 2) )  # Approximation, these are not independent.
+  
+  return(  r*2 / (n*(n-1)) )
+  
+#    r <- 0
+#  for(i in c(1:(n-3)))
+#    for(j in c((i+1):(n-2)))
+#      for(k in c((j+1):(n-1)))
+#        for(l in c((k+1):n))
+#          r <- r + 1/(i*j*k*l)
+  
+#  return(  r*2 / (n*(n-1)) )
+  
+}
+
 
 
 #V1 <- pareto_P_var(2, 3)
@@ -620,5 +741,30 @@ pareto_E_Z1Z2_large_int <- function(k, n, dig=128)
   
   return(list(e_k_n=e_k_n, run.time = Sys.time()-start.time))
 }        
+
+
+# Exact (for k=3)
+pareto_P_enumerate <- function(n, k=3)
+{
+  n.pareto <- rep(0, n)
+  p <- perms(1:n)
+  n.perms <- factorial(n)
+  for(i1 in 1:n.perms)
+    for(i2 in 1:n.perms)
+      for(i3 in 1:n.perms)
+      {
+        v <- matrix(as.double(t(p[c(i1,i2,i3),])), ncol = 3)
+        n.pareto[length(get_pareto_optimal_vecs(v)$pareto.inds)] <- n.pareto[length(get_pareto_optimal_vecs(v)$pareto.inds)] + 1
+      }
+
+  print(n.pareto)        
+  n.pareto <- n.pareto / n.perms^k
+  p_k_n <- sum((1:n) * n.pareto) / n
+  p_k_n2 <- sum(((1:n)^2) * n.pareto) 
+  v_k_n <- p_k_n2 - (p_k_n*n)^2  
+  
+  
+  return(list(p_k_n=p_k_n, v_k_n=v_k_n))
+}
 
 
