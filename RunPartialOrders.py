@@ -22,8 +22,9 @@ print(count_union_posets(6, F))
 find_random_counter_example_DNF_CNF_inequality()  # strong inequality (FALSE!)
 
 
-find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000)  # strong inequality (FALSE!)
+find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=5)  # weaker inequality (ALSO FALSE!)
 
+find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=5, triplets=True)  # weaker inequality (ALSO FALSE!)
 
 # F_bad = [[(0, 3), (0, 2), (1, 3)], [(1, 3), (0, 3)]]
 F_bad = [[(0, 3),  (1, 3)]]

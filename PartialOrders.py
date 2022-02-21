@@ -141,11 +141,25 @@ def gen_random_partial_orders(n, B, m, T, C=[]):
     return F
 
 
+# Randomize triplets
+# Input:
+# n - total size
+# B_1 - set of first vertex
+# B_2 - set of second vertex
+# m - number of edges
+# T - number of subsets
+def gen_random_triplets_partial_orders(n, B_1, B_2, m, T):
+    B = list(set(B_1).union(B_2))
+    C = [i for i in range(n) if i not in B]  # Complement, B_c
+    F = [[0]]*T
+    for t in range(T):  # sample triplets
+        F[t] = [(random.sample(B_1, 1)[0], random.sample(B_2, 1)[0], random.sample(C, 1)[0]) for j in range(m)]
+    return F
 
 
 
 # Draw random subsets of edges and try to find a violation of the inequality
-def find_random_counter_example_DNF_CNF_inequality(n = 4, B_1 = [0, 1], B_2 = [], num_edges = 3, num_sets = 2, iters = 100, full_print = False):
+def find_random_counter_example_DNF_CNF_inequality(n = 4, B_1 = [0, 1], B_2 = [], num_edges = 3, num_sets = 2, iters = 100, full_print = False, triplets = False):
     if len(B_2) == 0: # not given
         B_2 = B_1  # no need for deep copy (we don't alter B)
     B = list(set(B_1).union(B_2))
@@ -159,8 +173,14 @@ def find_random_counter_example_DNF_CNF_inequality(n = 4, B_1 = [0, 1], B_2 = []
     #    iters = 100
 
     for i in range(iters):
-        F = gen_random_partial_orders(n, B_1, m, T, B_c)  # change the conditioning and conditioned sets
-        G = gen_random_partial_orders(n, B_2, m, T, B_c)
+        if triplets:  # NEW!!!
+            F3 = gen_random_triplets_partial_orders(n, B_1, B_2, m, T)
+
+            F = [[(x[0], x[2]) for x in y] for y in F3]  # take pairs out of the triplet
+            G = [[(x[1], x[2]) for x in y] for y in F3]
+        else:
+            F = gen_random_partial_orders(n, B_1, m, T, B_c)  # change the conditioning and conditioned sets
+            G = gen_random_partial_orders(n, B_2, m, T, B_c)
         print(check_DNF_CNF_inequality(n, F, G))
         if not check_DNF_CNF_inequality(n, F, G):
             print("Error! Inequality Doesn't Hold!")
