@@ -30,29 +30,56 @@ if check_union_intersect_count:
 
 
 find_random_counter_example_DNF_CNF_inequality()  # strong inequality (FALSE!). PROBLEM WITH CODE!!!
-find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=5)  # weaker inequality (ALSO FALSE!)
-find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=5, triplets=True)  # weaker inequality (ALSO FALSE!)
-find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=5, triplets=True, unique_type = "vertex")  # weaker inequality (ALSO FALSE, but couldn't find an example with n=5)
-find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=7, triplets=True, unique_type = "vertex")  # weaker inequality (ALSO FALSE!)
+find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2], iters = 1000, n=5)  # weaker inequality (ALSO FALSE!)
+find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2], iters = 1000, n=5, triplets=True)  # weaker inequality (ALSO FALSE!)
+find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2], iters = 1000, n=5, triplets=True, unique_type = "vertex")  # weaker inequality (ALSO FALSE, but couldn't find an example with n=5)
+find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2], iters = 1000, n=7, triplets=True, unique_type = "vertex")  # weaker inequality (ALSO FALSE!)
 
 
 # NEW ORDER:
-find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=5, triplets=True, DNF_CNF_order=False)  # weaker inequality (ALSO FALSE!)
-find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=5, triplets=True, unique_type = "vertex", DNF_CNF_order=False)  # weaker inequality (ALSO FALSE, but couldn't find an example with n=5)
-BAD = find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2], iters = 1000, n=7, triplets=True, unique_type = "vertex", DNF_CNF_order=False)  # weaker inequality (ALSO FALSE!)
-BAD_EDGE = find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2, 3], num_edges=3, num_sets = 2,
+find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2], iters = 1000, n=5, triplets=True, DNF_CNF_order=False)  # weaker inequality (ALSO FALSE!)
+find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2], iters = 1000, n=5, triplets=True, unique_type = "vertex", DNF_CNF_order=False)  # weaker inequality (ALSO FALSE, but couldn't find an example with n=5)
+BAD = find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2], iters = 1000, n=7, triplets=True, unique_type = "vertex", DNF_CNF_order=False)  # weaker inequality (ALSO FALSE!)
+BAD_EDGE = find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2, 3], num_edges=3, num_sets = 2,
                                                           iters = 1000, n=7,
                                                           triplets=True, unique_type = "edge", DNF_CNF_order=False)  # weaker inequality (ALSO FALSE!)
 
-BAD_EDGE = find_random_counter_example_DNF_CNF_inequality(B_1 = [0, 1], B_2 = [2, 3, 4], num_edges=2, num_sets = 2,
+BAD_EDGE = find_random_counter_example_DNF_CNF_inequality(B1 = [0, 1], B2 = [2, 3, 4], num_edges=2, num_sets = 2,
                                                           iters = 1000, n=7,
                                                           triplets=True, unique_type = "edge", DNF_CNF_order=False)  # weaker inequality (ALSO FALSE!)
+# 1974 / 2520  =  0.783  <  0.775  =  1302 / 1680
+# iter: 2 n= 7 T= 2 m= 2 check: False
+# Error! Inequality Doesn't Hold!
+# F: [[(0, 6), (1, 6)], [(1, 5), (0, 6)]]
+# G: [[(2, 6), (2, 6)], [(2, 5), (2, 6)]]
+# Error! Inequality Doesn't Hold! n=7 , B1 =  [0, 1] , B2 =  [2, 3, 4]  ; B_c= [5, 6]
+
 
 
 m=3
-BAD_EDGE_PAIRS = find_random_counter_example_DNF_CNF_inequality(B_1 = range(m), B_2 = range(m,2*m), num_edges=m, num_sets = 2,
-                                                          iters = 1000, n=8,
+BAD_EDGE_PAIRS = find_random_counter_example_DNF_CNF_inequality(B1 = range(m), B2 = range(m, 2*m), num_edges=m, num_sets = 2,
+                                                          iters = 100, n=7,
                                                           triplets=True, unique_type = "edge_pairs", DNF_CNF_order=False)  # weaker inequality (ALSO FALSE!)
+
+m=3
+BAD_EDGE_PAIRS = find_random_counter_example_DNF_CNF_inequality(B1 = range(m), B2 = range(m, 2*m), num_edges=m, num_sets = 3,
+                                                                iters = 100, n=8,
+                                                                triplets=True, unique_type = "edge_pairs", DNF_CNF_order=False)  # weaker inequality (ALSO FALSE!)
+
+
+
+m = 3
+BAD_EDGE_PAIRS_RAND = find_random_counter_example_DNF_CNF_inequality(B1 = range(m), B2 = range(m,2*m), num_edges=m, num_sets = 3,
+                                                                     iters = 300, n=8,
+                                                                     triplets=True, unique_type = "edge_pairs", DNF_CNF_order=False, randomize=True)  # weaker inequality (ALSO FALSE!)
+
+
+# New: bad veertex
+m = 2
+BAD_VERTEX_UNIQUE_RAND = find_random_counter_example_DNF_CNF_inequality(B1 = range(m), B2 = range(m,2*m), num_edges=m, num_sets = 2,
+                                                                     iters = 100, n=7,
+                                                                     triplets=True, unique_type = "vertex_unique", DNF_CNF_order=False, randomize=True)  # weaker inequality (ALSO FALSE!)
+
 
 
 # Try a particular bad example
