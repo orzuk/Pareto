@@ -5,7 +5,7 @@ import numpy as np
 import math
 import copy
 import time
-
+from pareto import *
 
 # Find a random partition of the set ls into k non-empty sets
 # From stackoverflow here: https://stackoverflow.com/questions/45829748/python-finding-random-k-subset-partition-for-a-given-list
@@ -688,7 +688,6 @@ def check_conditioned_matrix_CNF_DNF_inequality(n_rows, k_cols, iters = 1000, ep
     ret_flag = True
     if not x_cond:
         P_B13 = 1 / (n_rows-1)**k_cols
-        r = range(n_rows-1)
         P_B13c = sum([math.comb(n_rows-2, r) * (-1)**r / (r+1)**k_cols for r in range(n_rows-1)])
 
         P_B23c_and_B13_exact = P_B13 + sum([math.comb(n_rows-2, r) * (-1)**r * ((-1)**(r+1)/ ((r+1)*n_rows))**k_cols for r in range(1, n_rows-1)])  # Wrong prob! (can be negative!
@@ -724,3 +723,20 @@ def check_conditioned_matrix_CNF_DNF_inequality(n_rows, k_cols, iters = 1000, ep
     # Another option: condition only two sides
 
     return ret_flag
+
+
+def check_matrix_CNF_DNF_inequality_combinatorics(n, k):
+    P_B13 = 1 / (n - 1) ** k
+    P_B13c = sum([math.comb(n - 2, r) * (-1) ** r / (r + 1) ** k for r in range(n - 1)])
+
+    P_B23c_and_B31 = P_B13 + sum([math.comb(n - 2, r) * (-1) ** r * ((-1) ** (r + 1) / ((r + 1) * n)) ** k for r in range(1, n - 1)])  # Wrong prob! (can be negative!
+    P_B23c_and_B13c = pareto_E_Z1Z2_python(k, n)
+
+    if(P_B13 * P_B23c_and_B13c > P_B13c * P_B23c_and_B31):
+        print("Error! Violation: Probs:")
+        print(P_B13 ,  P_B13c,   P_B23c_and_B13c, P_B23c_and_B31)
+        print("Products:")
+        print(P_B13 * P_B23c_and_B13c , P_B13c * P_B23c_and_B31)
+
+    return P_B13 * P_B23c_and_B13c <= P_B13c * P_B23c_and_B31
+

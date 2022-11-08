@@ -263,3 +263,12 @@ print("Time took:", time.time()-start_time)
 
 # NEW! Enumerate all possibilities with fixed size !!!
 find_enumerate_counter_example_DNF_CNF_inequality(n = 9, num_edges = 4, num_sets = 3)
+
+
+
+
+# New: use combinatoircs to verify matrix inequality:
+for n in range(2, 10):
+    for k in range(2, 10):
+        if not check_matrix_CNF_DNF_inequality_combinatorics(n, k):
+            print("Violation of inequality!!!!, n=", n, " k=", k)
