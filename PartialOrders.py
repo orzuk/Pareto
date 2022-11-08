@@ -677,3 +677,50 @@ def num_possible_inequalities(k, n, m_F, m_G=[], triplets=False):
     for s in range(len(m_G)):
         r *= math.comb(k, m_G[s]) * math.comb(n-k, m_G[s]) * math.factorial(m_G[s])
     return r / ( math.factorial(len(m_F)) * math.factorial(len(m_G))  )
+
+
+# New: Check the main inequality of the paper (Theorem 2), while conditioning on x1,2
+# New! check the special case with rows and columns (Theorem 2 in the paper), conditioned on x
+ # Convention: X_00, ..., X_0(k-1), X_10,..,X_1(k-1),...,x_(n-1)0,...,x_(n-1)(k-1)
+def check_conditioned_matrix_CNF_DNF_inequality(n_rows, k_cols, iters = 1000, epsilon = 0.000000001, x_cond = True):
+    n = n_rows * k_cols
+    P_B23c_and_B13_exact = 0
+    ret_flag = True
+    if not x_cond:
+        P_B13 = 1 / (n_rows-1)**k_cols
+        r = range(n_rows-1)
+        P_B13c = sum([math.comb(n_rows-2, r) * (-1)**r / (r+1)**k_cols for r in range(n_rows-1)])
+
+        P_B23c_and_B13_exact = P_B13 + sum([math.comb(n_rows-2, r) * (-1)**r * ((-1)**(r+1)/ ((r+1)*n_rows))**k_cols for r in range(1, n_rows-1)])  # Wrong prob! (can be negative!
+
+    # Condition all sides on x
+    P_B23c_and_B13c_mean, P_B23c_and_B13_mean = 0, 0
+    for t in range(iters):  #
+        x = np.random.uniform(0, 1, (n_rows,k_cols)) # Randomize array of X
+        P_B23c_and_B13c = 1 - np.prod(1-x[0])- np.prod(1-x[1]) + np.prod( 1 - np.maximum(x[0], x[1]))
+        P_B23c_and_B13 = np.prod(x[0]) - all(x[0] > x[1]) * np.prod(x[0]-x[1])
+        if x_cond:
+            P_B13 = np.prod(x[0])
+            P_B13c = 1 - np.prod(1-x[0])
+        else:
+            P_B23c_and_B13c = P_B23c_and_B13c**(n_rows-2)
+            P_B23c_and_B13 = P_B23c_and_B13**(n_rows-2)
+            P_B23c_and_B13c_mean += P_B23c_and_B13c
+            P_B23c_and_B13_mean += P_B23c_and_B13
+
+        if P_B13 * P_B23c_and_B13c > P_B13c * P_B23c_and_B13 + epsilon:  # allow tolerance
+            print("Conditioned inequality failes !!!")
+            print(x)
+            print("P-events:")
+            print(P_B13, P_B13c, P_B23c_and_B13c, P_B23c_and_B13)
+            ret_flag = False
+
+    P_B23c_and_B13c_mean /= iters
+    P_B23c_and_B13_mean /= iters
+    print("average prob. inequality: Holds?")
+    print(P_B13 * P_B23c_and_B13c_mean < P_B13c * P_B23c_and_B13_mean + epsilon) # Check if inequality holds in aggregate!!!
+    print(P_B13, P_B13c, P_B23c_and_B13c_mean, P_B23c_and_B13_mean)
+    print("(last one): Exact P_B23c_and_B13_exact: ", P_B23c_and_B13_exact)
+    # Another option: condition only two sides
+
+    return ret_flag

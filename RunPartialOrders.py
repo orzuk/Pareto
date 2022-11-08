@@ -214,7 +214,7 @@ BAD_UNIQUE_EDGE_DIFF = find_random_counter_example_DNF_CNF_inequality(B1 = [0,1]
 
 m, T = 3, 3
 # We need B1*C >= m*T
-BAD_UNIQUE_EDGE_DIFF_ONE_B = find_random_counter_example_DNF_CNF_inequality(B1 = [0,1,2], B2 = [0,1,2], num_edges=m, num_sets = T,
+BAD_UNIQUE_EDGE_DIFF_ONE_B = find_random_counter_example_DNF_CNF_inequality(B1 = [0,1,2], B2 = [0,1,2], num_edges=3, num_sets = 3,
                                                                      iters = 100, n=8,
                                                                      triplets=False, unique_type = "edge_B_C_unique_vertex_in_each_set", DNF_CNF_order=False, randomize=True)  # weaker inequality (ALSO FALSE!)
 
@@ -245,6 +245,12 @@ G = [[(3, 5)], [(3, 7), (4, 8)]]
 print(check_CNF_DNF_inequality(9, F, G))
 
 
+
+F =  [ [(1, 4)], [(1, 4), (2, 4)] ]
+G =  [ [(1, 3)], [(1, 3), (2, 3)] ]
+print(check_CNF_DNF_inequality(8, F, G))
+
+
 # Try big examples
 n = 10
 FF = [[(0, 4), (1, 4), (4,5)], [(1, 4), (1, 3), (0, 3)], [(4,5), (5,7), (7,8)], [(5,9), (3,9)]]
@@ -256,4 +262,4 @@ print("Time took:", time.time()-start_time)
 
 
 # NEW! Enumerate all possibilities with fixed size !!!
-find_enumerate_counter_example_DNF_CNF_inequality(n = 6, num_edges = 2, num_sets = 2)
+find_enumerate_counter_example_DNF_CNF_inequality(n = 9, num_edges = 4, num_sets = 3)
