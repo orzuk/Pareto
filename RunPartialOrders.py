@@ -268,7 +268,49 @@ find_enumerate_counter_example_DNF_CNF_inequality(n = 9, num_edges = 4, num_sets
 
 
 # New: use combinatoircs to verify matrix inequality:
-for n in range(2, 10):
-    for k in range(2, 10):
+viol = False
+for n in range(2, 50):
+    for k in range(2, 50):
         if not check_matrix_CNF_DNF_inequality_combinatorics(n, k):
             print("Violation of inequality!!!!, n=", n, " k=", k)
+            viol = True
+            break
+print("Violated?", viol)
+
+
+
+# Check manually
+n=4
+k=3
+c = 0
+P_B13c = sum([math.comb(n - 2, r) * (-1) ** r / (r + 1) ** k for r in range(n - 1)])
+P_B31 = 1/ ((n-1)**k)
+
+n,k=3,3
+ctr = 0
+P_B13c_B23c = 0
+P_B31_B23c = 0
+for p in permutations_iter(n):
+    print("Run p:", ctr)
+    ctr += 1
+    for q in permutations_iter(n):
+        for s in permutations_iter(n):
+            B13c, B23c, B31 = True, True, True # This is intersection over all j's
+            for j in range(2,n):
+                if p[j] > p[0] and q[j] > q[0] and s[j] > s[0]:
+                    B13c = False
+                if p[j] > p[1] and q[j] > q[1] and s[j] > s[1]:
+                    B23c = False
+                if p[j] > p[0] or q[j] > q[0] or s[j] > s[0]:
+                    B31 = False
+            P_B13c_B23c += (B13c) * (B23c)
+            P_B31_B23c += B31 * (B23c)
+print(P_B13c_B23c, P_B31_B23c)
+
+print(P_B31, P_B13c)
+
+#            print(p, q, s)
+print(c)
+
+print(P_B13c * P_B31_B23c)
+print(P_B31 * P_B13c_B23c)

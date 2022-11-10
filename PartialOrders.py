@@ -729,14 +729,14 @@ def check_matrix_CNF_DNF_inequality_combinatorics(n, k):
     P_B13 = 1 / (n - 1) ** k
     P_B13c = sum([math.comb(n - 2, r) * (-1) ** r / (r + 1) ** k for r in range(n - 1)])
 
-    P_B23c_and_B31 = P_B13 + sum([math.comb(n - 2, r) * (-1) ** r * ((-1) ** (r + 1) / ((r + 1) * n)) ** k for r in range(1, n - 1)])  # Wrong prob! (can be negative!
-    P_B23c_and_B13c = pareto_E_Z1Z2_python(k, n)
+    P_B23c_and_B31 = P_B13 + sum([math.comb(n - 2, r) * (-1) ** r / ((r + 1) * n)**k for r in range(1, n - 1)])  # Wrong prob! (can be negative!
+    P_B23c_and_B13c = pareto_P_Bj1c_and_Bj2c_python(k, n)
 
     if(P_B13 * P_B23c_and_B13c > P_B13c * P_B23c_and_B31):
         print("Error! Violation: Probs:")
-        print(P_B13 ,  P_B13c,   P_B23c_and_B13c, P_B23c_and_B31)
-        print("Products:")
-        print(P_B13 * P_B23c_and_B13c , P_B13c * P_B23c_and_B31)
+    print(P_B13 ,  P_B13c,   P_B23c_and_B13c, P_B23c_and_B31)
+    print("Products:")
+    print(P_B13 * P_B23c_and_B13c , P_B13c * P_B23c_and_B31)
 
     return P_B13 * P_B23c_and_B13c <= P_B13c * P_B23c_and_B31
 
