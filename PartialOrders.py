@@ -682,44 +682,55 @@ def num_possible_inequalities(k, n, m_F, m_G=[], triplets=False):
 # New: Check the main inequality of the paper (Theorem 2), while conditioning on x1,2
 # New! check the special case with rows and columns (Theorem 2 in the paper), conditioned on x
  # Convention: X_00, ..., X_0(k-1), X_10,..,X_1(k-1),...,x_(n-1)0,...,x_(n-1)(k-1)
-def check_conditioned_matrix_CNF_DNF_inequality(n_rows, k_cols, iters = 1000, epsilon = 0.000000001, x_cond = True):
-    n = n_rows * k_cols
-    P_B23c_and_B13_exact = 0
-    ret_flag = True
-    if not x_cond:
-        P_B13 = 1 / (n_rows-1)**k_cols
-        P_B13c = sum([math.comb(n_rows-2, r) * (-1)**r / (r+1)**k_cols for r in range(n_rows-1)])
+def check_conditioned_matrix_CNF_DNF_inequality(n, k, iters = 1000, epsilon = 0.000000001, x_cond = True, y_cond = True):
+    n_total = n * k
 
-        P_B23c_and_B13_exact = P_B13 + sum([math.comb(n_rows-2, r) * (-1)**r * ((-1)**(r+1)/ ((r+1)*n_rows))**k_cols for r in range(1, n_rows-1)])  # Wrong prob! (can be negative!
+    lst = check_matrix_CNF_DNF_inequality_combinatorics(n, k)
+    P_B31, P_B13c, P_B23c_and_B13c, P_B23c_and_B31 = lst[3]**(n-2), lst[4]**(n-2), lst[5]**(n-2), lst[6]**(n-2)
+
+#    P_B23c_and_B13_exact = 0
+#    ret_flag = True
+#    if not x_cond:
+#        P_B13 = 1 / (n-1)**k
+#        P_B13c = sum([math.comb(n-2, r) * (-1)**r / (r+1)**k for r in range(n-1)])
+
+#        P_B23c_and_B13_exact = P_B13 + sum([math.comb(n-2, r) * (-1)**r * ((-1)**(r+1)/ ((r+1)*n))**k for r in range(1, n-1)])  # Wrong prob! (can be negative!
 
     # Condition all sides on x
-    P_B23c_and_B13c_mean, P_B23c_and_B13_mean = 0, 0
+    P_B31_mean, P_B13c_mean, P_B23c_and_B13c_mean, P_B23c_and_B31_mean = 0, 0, 0, 0
+    ret_flag = True
     for t in range(iters):  #
-        x = np.random.uniform(0, 1, (n_rows,k_cols)) # Randomize array of X
-        P_B23c_and_B13c = 1 - np.prod(1-x[0])- np.prod(1-x[1]) + np.prod( 1 - np.maximum(x[0], x[1]))
-        P_B23c_and_B13 = np.prod(x[0]) - all(x[0] > x[1]) * np.prod(x[0]-x[1])
-        if x_cond:
-            P_B13 = np.prod(x[0])
-            P_B13c = 1 - np.prod(1-x[0])
-        else:
-            P_B23c_and_B13c = P_B23c_and_B13c**(n_rows-2)
-            P_B23c_and_B13 = P_B23c_and_B13**(n_rows-2)
-            P_B23c_and_B13c_mean += P_B23c_and_B13c
-            P_B23c_and_B13_mean += P_B23c_and_B13
+        x = np.random.uniform(0, 1, (n,k)) # Randomize array of X
+        P_B31_x = np.prod(x[0])
+        P_B13c_x = 1 - np.prod(1-x[0])
+        P_B23c_and_B13c_x = 1 - np.prod(1-x[0]) - np.prod(1-x[1]) + np.prod( 1 - np.maximum(x[0], x[1]))
+        P_B23c_and_B31_x = np.prod(x[0]) - all(x[0] > x[1]) * np.prod(x[0]-x[1])
 
-        if P_B13 * P_B23c_and_B13c > P_B13c * P_B23c_and_B13 + epsilon:  # allow tolerance
+        P_B31_mean += P_B31_x
+        P_B13c_mean += P_B13c_x
+        P_B23c_and_B13c_mean += P_B23c_and_B13c_x
+        P_B23c_and_B31_mean += P_B23c_and_B31_x
+
+        left_prob = (P_B31 *(1-x_cond) + P_B31_x * x_cond) * (P_B23c_and_B13c * (1-y_cond) + P_B23c_and_B13c_x * y_cond)
+        right_prob = (P_B13c *(1-x_cond) + P_B13c_x * x_cond) * (P_B23c_and_B31 * (1-y_cond) + P_B23c_and_B31_x * y_cond)
+
+
+        if left_prob > right_prob  + epsilon:  # allow tolerance
             print("Conditioned inequality failes !!!")
             print(x)
             print("P-events:")
-            print(P_B13, P_B13c, P_B23c_and_B13c, P_B23c_and_B13)
+#            print(P_B31, P_B13c, P_B23c_and_B13c, P_B23c_and_B31)
+            print(left_prob, right_prob)
             ret_flag = False
 
+    P_B31_mean /= iters
+    P_B13c_mean /= iters
     P_B23c_and_B13c_mean /= iters
-    P_B23c_and_B13_mean /= iters
+    P_B23c_and_B31_mean /= iters
     print("average prob. inequality: Holds?")
-    print(P_B13 * P_B23c_and_B13c_mean < P_B13c * P_B23c_and_B13_mean + epsilon) # Check if inequality holds in aggregate!!!
-    print(P_B13, P_B13c, P_B23c_and_B13c_mean, P_B23c_and_B13_mean)
-    print("(last one): Exact P_B23c_and_B13_exact: ", P_B23c_and_B13_exact)
+    print(P_B31_mean * P_B23c_and_B13c_mean < P_B13c_mean * P_B23c_and_B31_mean + epsilon) # Check if inequality holds in aggregate!!!
+#    print(P_B13, P_B13c, P_B23c_and_B13c_mean, P_B23c_and_B13_mean)
+#    print("(last one): Exact P_B23c_and_B13_exact: ", P_B23c_and_B13_exact)
     # Another option: condition only two sides
 
     return ret_flag
@@ -727,16 +738,16 @@ def check_conditioned_matrix_CNF_DNF_inequality(n_rows, k_cols, iters = 1000, ep
 
 def check_matrix_CNF_DNF_inequality_combinatorics(n, k):
     P_B13 = 1 / (n - 1) ** k
-    P_B13c = sum([math.comb(n - 2, r) * (-1) ** r / (r + 1) ** k for r in range(n - 1)])
+    P_B13c = pareto_P_Bj1c(k, n) # sum([math.comb(n - 2, r) * (-1) ** r / (r + 1) ** k for r in range(n - 1)])  # can lead to  numeric instabilities for large k, n
 
-    P_B23c_and_B31 = P_B13 + sum([math.comb(n - 2, r) * (-1) ** r / ((r + 1) * n)**k for r in range(1, n - 1)])  # Wrong prob! (can be negative!
+    P_B23c_and_B31 = P_B13 - n**(-k) * (1- P_B13c)  # P_B13 + sum([math.comb(n - 2, r) * (-1) ** r / ((r + 1) * n)**k for r in range(1, n - 1)])  # Wrong prob! (can be negative!
     P_B23c_and_B13c = pareto_P_Bj1c_and_Bj2c_python(k, n)
 
     if(P_B13 * P_B23c_and_B13c > P_B13c * P_B23c_and_B31):
         print("Error! Violation: Probs:")
-    print(P_B13 ,  P_B13c,   P_B23c_and_B13c, P_B23c_and_B31)
+    print(float(P_B13) ,  float(P_B13c),   float(P_B23c_and_B13c), float(P_B23c_and_B31))
     print("Products:")
     print(P_B13 * P_B23c_and_B13c , P_B13c * P_B23c_and_B31)
 
-    return P_B13 * P_B23c_and_B13c <= P_B13c * P_B23c_and_B31
+    return [P_B13 * P_B23c_and_B13c <= P_B13c * P_B23c_and_B31, P_B13 * P_B23c_and_B13c, P_B13c * P_B23c_and_B31, P_B13, P_B13c, P_B23c_and_B13c, P_B23c_and_B31]
 

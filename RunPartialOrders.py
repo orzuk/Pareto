@@ -3,6 +3,9 @@ check_perms_iter = False  # check iterators of permutations
 check_union_intersect_count = False  # Check code for counting permutations satisfying unions and intersections of constraints
 find_counter = True
 check_matrix = True
+import matplotlib.pyplot as plt
+
+
 
 #######################################################################
 if check_perms_iter:  # Example usage: check iterator of permutations
@@ -268,15 +271,29 @@ find_enumerate_counter_example_DNF_CNF_inequality(n = 9, num_edges = 4, num_sets
 
 
 # New: use combinatoircs to verify matrix inequality:
+max_n = 100
+max_k = 100
+P_left = np.zeros( (max_n, max_k))
+P_right = np.zeros( (max_n, max_k))
 viol = False
-for n in range(2, 50):
-    for k in range(2, 50):
-        if not check_matrix_CNF_DNF_inequality_combinatorics(n, k):
+for n in range(2, max_n):
+    print("Try n = ", n)
+    for k in range(2, max_k):
+        check_vec = check_matrix_CNF_DNF_inequality_combinatorics(n, k)
+        P_left[n,k], P_right[n,k] = check_vec[1],  check_vec[2]
+        if not check_vec[0]:
             print("Violation of inequality!!!!, n=", n, " k=", k)
             viol = True
             break
 print("Violated?", viol)
+P_diff = P_right - P_left
+P_ratio = P_right / P_left - 1
 
+
+# Weird observation: E_Z1Z2_n_k_plus_1 = P_Bj1c_Bj2c_n_k. Why? ONLY FOR n=3 !!! not universal!
+for n in range(2, 10):
+    for k in range(2, 10):
+        print(pareto_P_Bj1c_and_Bj2c_python(k,n) - pareto_E_Z1Z2_python(k+1,n))
 
 
 # Check manually
@@ -314,3 +331,10 @@ print(c)
 
 print(P_B13c * P_B31_B23c)
 print(P_B31 * P_B13c_B23c)
+
+plt.plot(P_ratio[3])
+
+n, k = 3, 2
+check_conditioned_matrix_CNF_DNF_inequality(n, k, x_cond = True, y_cond = False)
+
+

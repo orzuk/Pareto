@@ -31,6 +31,7 @@ def lcm_first(n):
 
 
 # Comptue p_E large integers.
+# Doeson't work for k=1. Why?
 def pareto_E_Z1Z2_python(k, n, dps = 100):
     start = time.time()
     mp.dps = dps  # set significant digits
@@ -45,7 +46,7 @@ def pareto_E_Z1Z2_python(k, n, dps = 100):
         for b in range(n-1-a):
             for c in range(n-1-a-b):
                 d = n-2-a-b-c
-                numerator = (n_factorial_vec[n-2] // (n_factorial_vec[a]*n_factorial_vec[b]*n_factorial_vec[c]*n_factorial_vec[d])) * (-1)**(a+b)  * ((a+b+2*c+2)**k - 2*(b+c+1)**k)
+                numerator = (n_factorial_vec[n-2] // (n_factorial_vec[a]*n_factorial_vec[b]*n_factorial_vec[c]*n_factorial_vec[d])) * (-1)**(a+b) * ((a+b+2*c+2)**k - 2*(b+c+1)**k)
                 denominator = ((a+c+1)*(b+c+1)*(a+b+c+2))**k
                 e_k_n_int += numerator * (max_denom_lcm // denominator)
                 ctr += 1
@@ -78,3 +79,23 @@ def pareto_P_Bj1c_and_Bj2c_python(k, n, dps = 100):
 
     print("k=" + str(k) + ", n=" + str(n) + ", Run time: " + str(time.time()-start))
     return mpf(e_k_n_int) / mpf(max_denom_lcm)
+
+
+# Compute probability that X_1 not dominated by X_3,..,X_n, with large numbers
+def pareto_P_Bj1c(k, n, dps = 100):
+    start = time.time()
+    mp.dps = dps  # set significant digits
+    n_factorial_vec = [math.factorial(i) for i in range(n-1)]  # prepare in advance
+    max_denom_lcm = lcm_first(n)**(3*k)
+
+    e_k_n_int = int(0)
+    ctr = 0
+    for r in range(n-1):
+        numerator = (n_factorial_vec[n-2] // (n_factorial_vec[r]*n_factorial_vec[n-2-r])) * (-1)**(r)
+        denominator = (r+1)**k
+        e_k_n_int += numerator * (max_denom_lcm // denominator)
+        ctr += 1
+
+    print("k=" + str(k) + ", n=" + str(n) + ", Run time: " + str(time.time()-start))
+    return mpf(e_k_n_int) / mpf(max_denom_lcm)
+
