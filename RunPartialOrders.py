@@ -268,15 +268,13 @@ print("Time took:", time.time()-start_time)
 find_enumerate_counter_example_DNF_CNF_inequality(n = 9, num_edges = 4, num_sets = 3)
 
 
-
-
 # New: use combinatoircs to verify matrix inequality:
-max_n = 100
-max_k = 100
+max_n = 40
+max_k = 40
 P_left = np.zeros( (max_n, max_k))
 P_right = np.zeros( (max_n, max_k))
 viol = False
-for n in range(2, max_n):
+for n in range(3, max_n):
     print("Try n = ", n)
     for k in range(2, max_k):
         check_vec = check_matrix_CNF_DNF_inequality_combinatorics(n, k)

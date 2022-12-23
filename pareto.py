@@ -66,7 +66,7 @@ def pareto_P_Bj1c_and_Bj2c_python(k, n, dps = 100):
     e_k_n_int = int(0)
     ctr = 0
     for a in range(n-1):
-        if a % 10 == 0:
+        if a % 50 == 0:
             print("Run a: " + str(a) + " out of " + str(n-2))
         for b in range(n-1-a):
             for c in range(n-1-a-b):
@@ -76,8 +76,9 @@ def pareto_P_Bj1c_and_Bj2c_python(k, n, dps = 100):
                 e_k_n_int += numerator * (max_denom_lcm // denominator)
                 ctr += 1
 #    return 0.1
-
-    print("k=" + str(k) + ", n=" + str(n) + ", Run time: " + str(time.time()-start))
+    runtime = time.time()-start
+    if runtime > 1:
+        print("k=" + str(k) + ", n=" + str(n) + ", Run time: " + str(runtime))
     return mpf(e_k_n_int) / mpf(max_denom_lcm)
 
 

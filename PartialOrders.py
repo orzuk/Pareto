@@ -737,17 +737,26 @@ def check_conditioned_matrix_CNF_DNF_inequality(n, k, iters = 1000, epsilon = 0.
 
 
 def check_matrix_CNF_DNF_inequality_combinatorics(n, k):
-    P_B13 = 1 / (n - 1) ** k
-    P_B13c = pareto_P_Bj1c(k, n) # sum([math.comb(n - 2, r) * (-1) ** r / (r + 1) ** k for r in range(n - 1)])  # can lead to  numeric instabilities for large k, n
+    epsilon = 0.0000000000000000001
+    P_B13 = 1 / (n - 1) ** k  # P(C)
+    P_B13c = pareto_P_Bj1c(k, n)  # P(A)=P(B) # sum([math.comb(n - 2, r) * (-1) ** r / (r + 1) ** k for r in range(n - 1)])  # can lead to  numeric instabilities for large k, n
 
-    P_B23c_and_B31 = P_B13 - n**(-k) * (1- P_B13c)  # P_B13 + sum([math.comb(n - 2, r) * (-1) ** r / ((r + 1) * n)**k for r in range(1, n - 1)])  # Wrong prob! (can be negative!
-    P_B23c_and_B13c = pareto_P_Bj1c_and_Bj2c_python(k, n)
+    P_B23c_and_B31 = P_B13 - n**(-k) * (1- P_B13c)  # P(A and C) # P_B13 + sum([math.comb(n - 2, r) * (-1) ** r / ((r + 1) * n)**k for r in range(1, n - 1)])  # Wrong prob! (can be negative!
+    P_B23c_and_B13c = pareto_P_Bj1c_and_Bj2c_python(k, n)  # P(A and B)
+
+    P_B23_only_and_B13c = sum([math.comb(n - 3, r) * (-1)**r * ( (2*(r + 1) ) ** (-k) - (1/(r+2) - 0.5/(r+3))**k ) for r in range(n - 2)]) # use it!!
 
     if(P_B13 * P_B23c_and_B13c > P_B13c * P_B23c_and_B31):
         print("Error! Violation: Probs:")
-    print(float(P_B13) ,  float(P_B13c),   float(P_B23c_and_B13c), float(P_B23c_and_B31))
-    print("Products:")
-    print(P_B13 * P_B23c_and_B13c , P_B13c * P_B23c_and_B31)
+        print(float(P_B13),  float(P_B13c),   float(P_B23c_and_B13c), float(P_B23c_and_B31))
+        print("Products:")
+        print(float(P_B13 * P_B23c_and_B13c), float(P_B13c * P_B23c_and_B31))
+        print("Actual cond. prob: ", (float(P_B13c) - float(P_B23c_and_B13c)) / float(1-P_B13c) )
+        print("Approx cond. prob: ", float(P_B23_only_and_B13c) * 2**(k))
+        print("Approx product: ", float(P_B13 * P_B23_only_and_B13c * 2**(k) * P_B13c))
+    if (P_B13 * (P_B13c - (1-P_B13c)*P_B23_only_and_B13c * 2**(k) ) > P_B13c * P_B23c_and_B31 + epsilon):
+        print("Error! VIOLATION OF LOWER-BOUND. DOESN'T WORK!!!")
+        print( float(P_B13 * (P_B13c - (1-P_B13c)*P_B23_only_and_B13c * 2**(k) )), ">", float(P_B13c * P_B23c_and_B31), ">", float(P_B13 * P_B23c_and_B13c) )
+        return False
 
     return [P_B13 * P_B23c_and_B13c <= P_B13c * P_B23c_and_B31, P_B13 * P_B23c_and_B13c, P_B13c * P_B23c_and_B31, P_B13, P_B13c, P_B23c_and_B13c, P_B23c_and_B31]
-
