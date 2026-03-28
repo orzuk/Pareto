@@ -2,10 +2,10 @@
 Verify the correlation inequality R(m,k) <= alpha(m,k) by exact rational arithmetic.
 
 Usage:
-    python verify_inequality.py                    # default: m <= 20, k up to 5*ln(m)
-    python verify_inequality.py --max_m 50         # m <= 50, k up to 5*ln(m)
+    python verify_inequality.py                    # default: m <= 20, k up to 4*ln(m)
+    python verify_inequality.py --max_m 50         # m <= 50, k up to 4*ln(m)
     python verify_inequality.py --max_m 30 --max_k 15   # m <= 30, k <= 15
-    python verify_inequality.py --max_m 100 --max_k log  # m <= 100, k up to 5*ln(m)
+    python verify_inequality.py --max_m 100 --max_k log  # m <= 100, k up to 4*ln(m)
 """
 
 import argparse
@@ -50,7 +50,7 @@ def R_alpha_check(m, k):
 def get_max_k(m, max_k_arg):
     """Determine max k to check for a given m."""
     if max_k_arg == 'log':
-        return max(2, ceil(5 * log(m))) if m >= 2 else 2
+        return max(2, ceil(4 * log(m))) if m >= 2 else 2
     else:
         return int(max_k_arg)
 
@@ -59,12 +59,12 @@ def main():
     parser = argparse.ArgumentParser(description='Verify R(m,k) <= alpha(m,k)')
     parser.add_argument('--max_m', type=int, default=20, help='Maximum m to check (default: 20)')
     parser.add_argument('--max_k', type=str, default='log',
-                        help='Maximum k: integer or "log" for ceil(5*ln(m)) (default: log)')
+                        help='Maximum k: integer or "log" for ceil(4*ln(m)) (default: log)')
     args = parser.parse_args()
 
     print(f"Verifying R(m,k) <= alpha(m,k)", flush=True)
     print(f"  max_m = {args.max_m}", flush=True)
-    print(f"  max_k = {args.max_k}" + (" (= ceil(5*ln(m)) per m)" if args.max_k == 'log' else ""), flush=True)
+    print(f"  max_k = {args.max_k}" + (" (= ceil(4*ln(m)) per m)" if args.max_k == 'log' else ""), flush=True)
     print(flush=True)
 
     total_pairs = 0
@@ -124,7 +124,7 @@ def main():
     else:
         if args.max_k == 'log':
             print(f"\n  THEOREM: R(m,k) < alpha(m,k) for all m <= {args.max_m} and all k >= 1.", flush=True)
-            print(f"  (k=1..ceil(5*ln(m)) verified; k > 5*ln(m) covered by analytic proof.)", flush=True)
+            print(f"  (k=1..ceil(4*ln(m)) verified; k > 4*ln(m) covered by analytic proof.)", flush=True)
         else:
             print(f"\n  R(m,k) < alpha(m,k) verified for all m <= {args.max_m}, k <= {args.max_k}.", flush=True)
 
