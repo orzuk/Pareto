@@ -1,12 +1,27 @@
 # Pareto
-Computing statistics for Pareto-optimal vectors
+Computing statistics and verifying correlation inequalities for Pareto-optimal vectors in the unit hypercube.
 
+Companion code for the paper: *A correlation inequality for random points in a hypercube* by R. Jacobovic and O. Zuk ([arXiv:2209.00346](https://arxiv.org/abs/2209.00346)).
 
-To check whether certain correlation inequalities hold, use the function 'find_enumerate_counter_example_DNF_CNF_inequality'. 
-For example: <br>
-\>\>\> find_enumerate_counter_example_DNF_CNF_inequality(n = 8, num_edges = 3, num_sets = 3)
+## Verifying the main inequality
 
-To find counter-examples to certain inequalities randomly, use the function 'find_random_counter_example_DNF_CNF_inequality'. 
-For example: <br>
-\>\>\> find_random_counter_example_DNF_CNF_inequality(B1 = [0,1,2], B2 = [0,1,2], num_edges=3, num_sets = 3, iters = 100, n=8,
-                                  triplets=False, unique_type = "edge_B_C_unique_vertex_in_each_set", DNF_CNF_order=False, randomize=True) 
+The script `verify_inequality.py` checks the correlation inequality R(m,k) ≤ α(m,k) using exact rational arithmetic. Combined with the analytic proof for k ≥ 5 ln(m), this gives a rigorous verification for all k ≥ 1.
+
+```bash
+# Verify for all m ≤ 20 (default, ~1 second)
+python verify_inequality.py
+
+# Verify for all m ≤ 100 (~30 minutes)
+python verify_inequality.py --max_m 100
+
+# Verify for all m ≤ 50, all k ≤ 25 (fixed k range instead of 5*ln(m))
+python verify_inequality.py --max_m 50 --max_k 25
+```
+
+Requires Python 3 (no external packages — uses only `fractions` for exact arithmetic).
+
+## Other code
+
+- `pareto.py` — exact computation of Pareto-optimal probabilities (E[Z₁Z₂], etc.)
+- `PartialOrders.py` — verification of generalized DNF/CNF correlation inequalities
+- `pareto_funcs.R` — R functions for Pareto statistics (older codebase)
