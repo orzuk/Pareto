@@ -1,0 +1,30 @@
+Connection between /mnt/c/Code/Github/Pareto and the correlation inequality proof
+==================================================================================
+
+The Pareto repo computes exact probabilities for Pareto-optimal vectors in [0,1]^k.
+The main open problem (in NewProof/) is the variance inequality:
+
+    Var(V) <= E[V](1-E[V]) * (1 - ((m+1)/(m+2))^k)
+
+where V = Vol(union of m random anchored boxes in [0,1]^k), m = n-2.
+
+Key connections:
+- pareto.py::pareto_E_Z1Z2_python(k,n) computes E[Z1*Z2] = P(both X_1,X_2 Pareto maxima)
+  This is related to E[(1-V)^2] = P(X_1 and X_2 both non-dominated by X_3..Xn)
+  via: E[Z1*Z2] = E[(1-V)^2] - P(X_2 dominates X_1 | both non-dominated) * ...
+  More precisely, pareto_P_Bj1c_and_Bj2c_python gives E[(1-V)^2] directly.
+
+- pareto.py::pareto_P_Bj1c(k,n) computes P(X_1 non-dominated) = 1 - E[V]
+
+- The variance of the number of Pareto maxima is:
+    Var(M_n) = n*p*(1-p) + n*(n-1)*(E[Z1*Z2] - p^2)
+  The correlation inequality is equivalent to bounding the covariance term.
+
+- PartialOrders.py studies a generalization (DNF/CNF ordering inequalities)
+  The "matrix inequality" special case IS the correlation inequality.
+
+R functions to port to Python (for unified codebase):
+1. pareto_P_mat(max_n, max_k): fast recursive p_{k,n} computation -> DONE in proof_strategies_numerical.py
+2. pareto_P_approx(n, k): asymptotic formula -> DONE in proof_strategies_numerical.py
+3. pareto_P_sim(n, k): Monte Carlo simulation -> DONE in proof_strategies_numerical.py
+4. make_p_pareto_plots.R: visualization code -> TODO (convert to matplotlib)
